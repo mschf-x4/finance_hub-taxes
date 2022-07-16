@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mdscript name="fh_taxes_menu"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+    <cue name="mschf_fht_invoke_sma" instantiate="true" namespace="this">
+      <conditions>
+        <event_cue_signalled cue="md.Simple_Menu_API.Reloaded"/>
+      </conditions>
+      <actions>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Register_Options_Menu" param="table[
+          $id='mschf_fht_options_menu',
+          $title={102104116,1000},
+          $onOpen=mschf_fht_build_menu,
+          $columns=3]"/>
+      </actions>
+    </cue>
+    <cue name="mschf_fht_build_menu" instantiate="true" namespace="this">
+      <conditions>
+        <event_cue_signalled/>
+      </conditions>
+      <actions>
+        <!--Script Configuration-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=3,
+          $font='Helper.standardFontBold',
+          $color='Helper.color.orange', $titleColor='Helper.defaultSimpleBackgroundColor',
+          $text={102104116,1100}]"/>
+        <!--Run Interval-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=2,
+          $text={102104116,1110}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='run_int',
+          $start=md.fh_taxes_config.fht_config.$run_int,
+          $col=3,
+          $min=1, $max=120, $suffix='minutes',
+          $mouseOverText={102104116,1111},
+          $onSliderCellChanged=fht_slider_change]"/>
+        <!--Enable Player Taxes--> 
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=2,
+          $text={102104116,1120}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_CheckBox" param="table[
+          $id='player_tax_enabled',
+          $checked=md.fh_taxes_config.fht_config.$player_tax_enabled,
+          $col=3,
+          $width='Helper.standardButtonHeight', $height='Helper.standardButtonHeight',
+          $mouseOverText={102104116,1121},
+          $onClick=fht_save_change]"/>
+        <!--Enable NPC Taxes--> 
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=2,
+          $text={102104116,1130}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_CheckBox" param="table[
+          $id='npc_tax_enabled',
+          $checked=md.fh_taxes_config.fht_config.$npc_tax_enabled,
+          $col=3,
+          $width='Helper.standardButtonHeight', $height='Helper.standardButtonHeight',
+          $mouseOverText={102104116,1131},
+          $onClick=fht_save_change]"/>
+        <!--Enable Workforce Taxes--> 
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=2,
+          $text={102104116,1140}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_CheckBox" param="table[
+          $id='workforce_tax_enabled',
+          $checked=md.fh_taxes_config.fht_config.$workforce_tax_enabled,
+          $col=3,
+          $width='Helper.standardButtonHeight', $height='Helper.standardButtonHeight',
+          $mouseOverText={102104116,1141},
+          $onClick=fht_save_change]"/>
+        <!--Workforce Events--> 
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=2,
+          $text={102104116,1160}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_CheckBox" param="table[
+          $id='workforce_events_enabled',
+          $checked=md.fh_taxes_config.fht_config.$workforce_events_enabled,
+          $col=3,
+          $width='Helper.standardButtonHeight', $height='Helper.standardButtonHeight',
+          $mouseOverText={102104116,1161},
+          $onClick=fht_save_change]"/>
+        <!--Enable Reputation on fail--> 
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=2,
+          $text={102104116,1150}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_CheckBox" param="table[
+          $id='reputation_fail_enabled',
+          $checked=md.fh_taxes_config.fht_config.$reputation_fail_enabled,
+          $col=3,
+          $width='Helper.standardButtonHeight', $height='Helper.standardButtonHeight',
+          $mouseOverText={102104116,1151},
+          $onClick=fht_save_change]"/>
+        <!--Tax Configuration-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1, $colSpan=3,
+          $font='Helper.standardFontBold',
+          $color='Helper.color.orange', $titleColor='Helper.defaultSimpleBackgroundColor',
+          $text={102104116,1200}]"/>
+        <!--Neutral Tax-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1,
+          $colSpan=1,
+          $text={102104116,1210}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='neutral_tax_percent',
+          $start=md.fh_taxes_config.fht_config.$neutral_tax_percent,
+          $col=3,
+          $min=0, $max=5, $step=0.5, $suffix='%',
+          $mouseOverText={102104116,1211},
+          $onSliderCellChanged=fht_slider_change]"/>
+        <!--Friendly Tax-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1,
+          $colSpan=1,
+          $text={102104116,1220}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='friendly_tax_percent',
+          $start=md.fh_taxes_config.fht_config.$friendly_tax_percent,
+          $col=3,
+          $min=0, $max=5, $step=0.5, $suffix='%',
+          $mouseOverText={102104116,1221},
+          $onSliderCellChanged=fht_slider_change]"/>
+        <!--Member Tax-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1,
+          $colSpan=1,
+          $text={102104116,1230}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='member_tax_percent',
+          $start=md.fh_taxes_config.fht_config.$member_tax_percent,
+          $col=3,
+          $min=0, $max=10, $step=0.5, $suffix='%',
+          $mouseOverText={102104116,1231},
+          $onSliderCellChanged=fht_slider_change]"/>
+        <!--Allied Tax-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1,
+          $colSpan=1,
+          $text={102104116,1240}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='allied_tax_percent',
+          $start=md.fh_taxes_config.fht_config.$allied_tax_percent,
+          $col=3,
+          $min=0, $max=5, $step=0.5, $suffix='%',
+          $mouseOverText={102104116,1241},
+          $onSliderCellChanged=fht_slider_change]"/>
+        <!--Enemy Tax-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1,
+          $colSpan=1,
+          $text={102104116,1250}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='enemy_tax_percent',
+          $start=md.fh_taxes_config.fht_config.$enemy_tax_percent,
+          $col=3,
+          $min=0, $max=5, $step=0.5, $suffix='%',
+          $mouseOverText={102104116,1251},
+          $onSliderCellChanged=fht_slider_change]"/>
+        <!--Workforce Tax-->
+        <signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[
+          $col=1,
+          $colSpan=1,
+          $text={102104116,1260}]"/>
+        <signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+          $id='workforce_tax_amount',
+          $start=md.fh_taxes_config.fht_config.$workforce_tax_amount,
+          $col=3,
+          $min=1, $max=100, $suffix='Cr',
+          $mouseOverText={102104116,1261},
+          $onSliderCellChanged=fht_slider_change]"/>
+      </actions>
+    </cue>
+    
+    
+    <!--Apply Slider Settings-->
+    <cue name="fht_slider_change" instantiate="true">
+			<conditions>
+				<event_cue_signalled/>
+			</conditions>
+			<actions>
+        <debug_text text="'mod: set slider value pre: ' + md.fh_taxes_config.fht_config.{'$' + event.param.$id}" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+				<set_value name="md.fh_taxes_config.fht_config.{'$' + event.param.$id}" exact="event.param.$value"/>
+        <debug_text text="'mod: set slider value post: ' + md.fh_taxes_config.fht_config.{'$' + event.param.$id}" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+			</actions>
+		</cue>
+    <!--Apply Checkbox Settings-->
+    <cue name="fht_save_change" instantiate="true">
+      <conditions>
+        <event_cue_signalled/>
+      </conditions>
+      <actions>
+				<debug_text text="'mod: set check value pre: ' + md.fh_taxes_config.fht_config.{'$' + event.param.$id}" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+        <set_value name="md.fh_taxes_config.fht_config.{'$' + event.param.$id}" exact="event.param.$checked"/>
+        <debug_text text="'mod: set check value post: ' + md.fh_taxes_config.fht_config.{'$' + event.param.$id}" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+      </actions>
+    </cue>
+  </cues>
+</mdscript>

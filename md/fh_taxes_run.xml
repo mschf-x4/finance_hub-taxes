@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mdscript name="fh_taxes_run"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+    <cue name="fht_init" namespace="this" version="1">
+      <conditions>
+        <check_any>
+          <event_cue_signalled/>
+          <event_cue_signalled cue="md.Setup.GameStart"/>
+          <event_game_loaded/>
+        </check_any>
+      </conditions>
+      <actions>
+        <set_value name="$timer_conf" exact="[player.age + 30s, 1min].max"/>
+        <debug_text text="'mod: initialised.'" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+      </actions>
+      <cues>
+        <cue name="fht_run" instantiate="false" checktime="$timer_conf">
+          <set_value name="$fht_last_run" exact="player.age"/>
+          <debug_text text="'mod: signalling fht_process'" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+          <signal_cue_instantly cue="fht_process"/>
+        </cue>
+        <cue name="fht_timer" instantiate="true" checkinterval="1min" checktime="$timer_conf" comment="1min/timerconf">
+          <conditions>
+            <check_value value="player.age ge ($fht_last_run + (md.fh_taxes_config.fht_config.$run_int)min)"/>
+          </conditions>
+          <actions>
+            <set_value name="$fht_last_run" exact="player.age"/>
+            <debug_text text="'mod: signalling fht_process'" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+            <signal_cue_instantly cue="fht_process"/>
+          </actions>
+        </cue>
+        <cue name="fht_process" instantiate="true" namespace="this">
+          <conditions>
+            <event_cue_signalled/>
+          </conditions>
+          <actions>
+            <!--NPC Tax-->
+            <debug_text text="'mod: $npc_tax_enabled=' + md.fh_taxes_config.fht_config.$npc_tax_enabled" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+            <find_sector name="$sectors_player" owner="faction.player" multiple="true"/>
+            <do_if value="$sectors_player.count">
+              <set_value name="$npc_tax_total" exact="0"/>
+              <create_list name="$reputation_changes"/>
+              <do_if value="md.fh_taxes_config.fht_config.$npc_tax_enabled == 1">
+                <debug_text text="'mod: found sectors'" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+                <create_list name="$npc_list_stations"/>
+                <do_all exact="$sectors_player.count" counter="$i">
+                  <set_value name="$sector" exact="$sectors_player.{$i}"/>
+                  <find_object name="$stations" recursive="true" class="class.station" multiple="true" space="$sector" known="true">
+                    <match owner="[faction.player, faction.xenon, faction.khaak, faction.scaleplate, faction.buccaneers]" negate="true"/>
+                  </find_object>
+                  <do_if value="$stations.count">
+                    <set_value name="$stations_total" operation="add" exact="$stations.count"/>
+                    <do_all exact="$stations.count" counter="$k">
+                      <set_value name="$station" exact="$stations.{$k}"/>
+                      <set_value name="$relations" exact="$station.owner.relationto.{faction.player}"/>
+                      <!--Allied Tax-->
+                      <do_if value="$relations ge 0.5f">
+                        <set_value name="$npc_tax_rate" exact="(md.fh_taxes_config.fht_config.$allied_tax_percent)f/100"/>
+                      </do_if>
+                      <!--Member Tax-->
+                      <do_elseif value="$relations ge 0.1f">
+                        <set_value name="$npc_tax_rate" exact="(md.fh_taxes_config.fht_config.$member_tax_percent)f/100"/>
+                      </do_elseif>
+                      <!--Friendly-->
+                      <do_elseif value="$relations ge 0.01f">
+                          <set_value name="$npc_tax_rate" exact="(md.fh_taxes_config.fht_config.$friendly_tax_percent)f/100"/>
+                      </do_elseif>
+                      <!--Neutral Tax-->
+                      <do_elseif value="$relations ge -0.01f">
+                        <set_value name="$npc_tax_rate" exact="(md.fh_taxes_config.fht_config.$neutral_tax_percent)f/100"/>
+                      </do_elseif>
+                      <!--Enemy Tax-->
+                      <do_elseif value="$relations le -0.1f">
+                        <set_value name="$npc_tax_rate" exact="(md.fh_taxes_config.fht_config.$enemy_tax_percent)f/100"/>
+                      </do_elseif>
+                      <do_else>
+                        <debug_text text="'mod: unable to match relation: ' + $relations" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+                      </do_else>
+                      <set_value name="$npc_station_value" exact="(($station.value)f / 100)f"/>
+                      <set_value name="$npc_station_value" exact="(100000)f" chance="(not $npc_station_value?)*100"/>
+                      <set_value name="$npc_tax" exact="($npc_station_value * $npc_tax_rate)ct"/>
+                      <set_value name="$npc_tax_total" operation="add" exact="$npc_tax"/>
+                      <append_to_list name="$npc_list_stations" exact="[$station.knownname, $station.sector.knownname,  $npc_tax.formatted.{'%s%Cr'}, $station.owner]"/>
+                      <debug_text text="'mod: credit %1 (%2) [%4}, %3'.[$station.knownname, $station.sector.knownname,  $npc_tax.formatted.{'%s%Cr'}, $station.owner]" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+                    </do_all>
+                  </do_if>
+                </do_all>
+                <do_if value="$npc_tax_total gt 0">
+                  <set_value name="$faction_owner" exact="$npc_list_stations.random.{4}"/>
+                  <set_value name="$reputation_change" exact="1"/>
+                  <include_actions ref="fht_relations"/>
+                </do_if>
+              </do_if>
+            </do_if>
+            <!--Workforce Tax-->
+            <debug_text text="'mod: $workforce_tax_enabled=' + md.fh_taxes_config.fht_config.$workforce_tax_enabled" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+            <set_value name="$workforce_tax_total" exact="0"/>
+            <find_object name="$stations_player" recursive="true" owner="faction.player" class="class.station" multiple="true" space="player.galaxy"/>
+            <do_if value="$stations_player.count">
+              <do_if value="md.fh_taxes_config.fht_config.$workforce_tax_enabled == 1">
+                <debug_text text="'mod: found stations'" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+                <create_list name="$workforce_list_stations"/>
+                <do_all exact="$stations_player.count" counter="$i">
+                  <set_value name="$stations" exact="$stations_player.{$i}"/>
+                  <set_value name="$workforce_total" operation="add" exact="$stations.workforce.amount"/>
+                  <append_to_list name="$workforce_list_stations" exact="[$stations.knownname, $stations.sector.knownname, $stations.workforce.amount, $stations.owner, $stations]"/>
+                </do_all>
+                <do_if value="$workforce_total gt 0">
+                  <set_value name="$workforce_tax_total" exact="(($workforce_total * md.fh_taxes_config.fht_config.$workforce_tax_amount)*100)ct "/>
+                  <do_all exact="$workforce_list_stations.count" counter="$i">
+                    <set_value name="$workforce_pre" operation="add" exact="$workforce_list_stations.{$i}.{3}"/>
+                    <do_if value="(md.fh_taxes_config.fht_config.$workforce_tax_amount lt 40) and ($workforce_list_stations.{$i}.{3} gt 0)" chance="100">
+                      <set_value name="$workforce_race" exact="$workforce_list_stations.{$i}.{5}.workforce.races"/>
+                      <do_all exact="$workforce_race.count" counter="$j">
+                        <do_if value="($workforce_list_stations.{$i}.{5}.workforce.amount lt $workforce_list_stations.{$i}.{5}.workforce.capacity)">
+                          <add_workforce object="$workforce_list_stations.{$i}.{5}" race="$workforce_race.{$j}" min="($workforce_list_stations.{$i}.{5}.workforce.{$workforce_race.{$j}}.amount * 0.05)" max="($workforce_list_stations.{$i}.{5}.workforce.{$workforce_race.{$j}}.amount * 0.10)"/>
+                          <set_value name="$workforce_changed" exact="1"/>
+                        </do_if>
+                      </do_all>
+                    </do_if>
+                    <do_if value="(md.fh_taxes_config.fht_config.$workforce_tax_amount gt 60) and ($workforce_list_stations.{$i}.{3} gt 0)" chance="100">
+                      <set_value name="$workforce_race" exact="$workforce_list_stations.{$i}.{5}.workforce.races"/>
+                      <do_all exact="$workforce_race.count" counter="$j">
+                        <do_if value="($workforce_list_stations.{$i}.{5}.workforce.amount le $workforce_list_stations.{$i}.{5}.workforce.capacity) and ($workforce_list_stations.{$i}.{5}.workforce.amount gt 100)">
+                          <remove_workforce object="$workforce_list_stations.{$i}.{5}" race="$workforce_race.{$j}" amount="($workforce_list_stations.{$i}.{5}.workforce.{$workforce_race.{$j}}.amount) - ($workforce_list_stations.{$i}.{5}.workforce.{$workforce_race.{$j}}.amount * 0.95)" max="($workforce_list_stations.{$i}.{5}.workforce.{$workforce_race.{$j}}.amount) - ($workforce_list_stations.{$i}.{5}.workforce.{$workforce_race.{$j}}.amount * 0.9)"/>
+                          <set_value name="$workforce_changed" exact="1"/>
+                        </do_if>
+                      </do_all>
+                    </do_if>
+                    <set_value name="$workforce_post" operation="add" exact="$workforce_list_stations.{$i}.{5}.workforce.amount"/>
+                  </do_all>
+                </do_if>
+              </do_if>
+            </do_if>
+            <!--Player Tax-->
+            <debug_text text="'mod: $player_tax_enabled=' + md.fh_taxes_config.fht_config.$player_tax_enabled" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+            <find_object name="$stations_player" recursive="true" owner="faction.player" class="class.station" multiple="true" space="player.galaxy"/>
+            <do_if value="$stations_player.count">
+              <set_value name="$player_tax_total" exact="0"/>
+              <do_if value="md.fh_taxes_config.fht_config.$player_tax_enabled == 1">
+                <debug_text text="'mod: found stations'" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+                <create_list name="$player_list_stations"/>
+                <do_all exact="$stations_player.count" counter="$i">
+                  <set_value name="$stations" exact="$stations_player.{$i}"/>
+                  <find_object_component name="$station_components" object="$stations" recursive="true" multiple="true" class="class.module"/>
+                  <do_if value="not $station_components.count">
+                    <continue/>
+                  </do_if>
+                  <do_if value="($stations.sector.owner != faction.ownerless) and ($stations.sector.owner != faction.player) and ($stations.sector.owner != faction.xenon)">
+                    <do_if value="$stations.sector.owner.relationto.{faction.player} ge 0.5f">
+                      <set_value name="$player_tax_rate" exact="(md.fh_taxes_config.fht_config.$allied_tax_percent)f/100"/>
+                    </do_if>
+                    <!--Member Tax-->
+                    <do_elseif value="$stations.sector.owner.relationto.{faction.player} ge 0.1f">
+                      <set_value name="$player_tax_rate" exact="(md.fh_taxes_config.fht_config.$member_tax_percent)f/100"/>
+                    </do_elseif>
+                    <!--Friendly-->
+                    <do_elseif value="$stations.sector.owner.relationto.{faction.player} ge 0.01f">
+                        <set_value name="$player_tax_rate" exact="(md.fh_taxes_config.fht_config.$friendly_tax_percent)f/100"/>
+                    </do_elseif>
+                    <!--Neutral Tax-->
+                    <do_elseif value="$stations.sector.owner.relationto.{faction.player} ge -0.01f">
+                      <set_value name="$player_tax_rate" exact="(md.fh_taxes_config.fht_config.$neutral_tax_percent)f/100"/>
+                    </do_elseif>
+                    <!--Enemy Tax-->
+                    <do_elseif value="$stations.sector.owner.relationto.{faction.player} le -0.1f">
+                      <set_value name="$player_tax_rate" exact="(md.fh_taxes_config.fht_config.$enemy_tax_percent)f/100"/>
+                    </do_elseif>
+                    <set_value name="$player_station_value" exact="(($stations.value)f / 100)f"/>
+                    <set_value name="$player_station_value" exact="(100000)f" chance="(not $player_station_value?)*100"/>
+                    <set_value name="$player_tax" exact="($player_station_value * $player_tax_rate)ct"/>
+                    <set_value name="$player_tax_total" operation="add" exact="$player_tax"/>
+                    <set_value name="$player_station_faction" exact="$stations.sector.owner.knownname"/>
+                    <append_to_list name="$player_list_stations" exact="[$stations.knownname, $stations.sector.knownname, $player_tax.formatted.{'%s%Cr'}, $stations.sector.owner]"/>
+                    <debug_text text="'mod: debit %1 (%2) [%4], %3'.[$stations.knownname, $stations.sector.knownname, $player_tax.formatted.{'%s%Cr'}, $stations.sector.owner]" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+                  </do_if>
+                </do_all>
+                <do_if value="$player_tax_total gt 0">
+                  <do_if value="not $npc_tax_total?">
+                    <set_value name="$npc_tax_total" exact="(0)ct"/>
+                  </do_if>
+                  <do_if value="(player.money + $npc_tax_total + $workforce_tax_total ) le $player_tax_total">
+                    <set_value name="$is_bankrupt" exact="1"/>
+                      <set_value name="$faction_owner" exact="$player_list_stations.random.{4}"/>
+                      <set_value name="$reputation_change" exact="-1"/>
+                      <include_actions ref="fht_relations"/>
+                  </do_if>
+                </do_if>
+              </do_if>
+            </do_if>
+            <!--Output-->
+            <do_if value="not $is_bankrupt?">
+              <do_if value="not $npc_tax_total?">
+                <set_value name="$npc_tax_total" exact="(0)ct"/>
+              </do_if>
+              <do_if value="not $workforce_tax_total?">
+                <set_value name="$workforce_tax_total" exact="(0)ct"/>
+              </do_if>
+              <set_value name="$total_incoming" exact="($npc_tax_total + $workforce_tax_total)"/>
+              <do_if value="not $player_tax_total?">
+                <set_value name="$player_tax_total" exact="(0)ct"/>
+              </do_if>
+              <do_if value="md.fh_taxes_config.fht_config.$player_tax_enabled == 1">
+                <set_value name="$total_outgoing" exact="($player_tax_total)"/>
+              </do_if>
+              <do_else>
+                <set_value name="$total_outgoing" exact="(0)ct"/>
+              </do_else>
+              <do_if value="($total_outgoing + $total_incoming) != 0">
+                <set_value name="$total_calculated" exact="$total_incoming - $player_tax_total"/>
+                <set_value name="$ticker_contents" exact="{102104116,2000} + '\n' + {102104116,2010} + $total_incoming.formatted.{'%s%Cr'} +'\n' + {102104116,2020} + $total_outgoing.formatted.{'%s%Cr'}"/> 
+                <do_if value="not $workforce_tax_total">
+                  <set_value name="$logbook_contents" exact="{102104116,2060} + '\n' + {102104116,2010} + $total_incoming.formatted.{'%s%Cr'} + '\n' + {102104116,2020} + $total_outgoing.formatted.{'%s%Cr'}"/> 
+                </do_if>
+                <do_else>
+                  <set_value name="$logbook_contents" exact="{102104116,2060} + '\n' + {102104116,2010} + $total_incoming.formatted.{'%s%Cr'} + '\n' + {102104116,2020} + $total_outgoing.formatted.{'%s%Cr'} + '\n' + {102104116,2050} + $workforce_tax_total.formatted.{'%s%Cr'}"/> 
+                  
+                </do_else>
+                <do_if value="$workforce_pre?">
+                  <set_value name="$ticker_contents" operation="add" exact="'\n' + {102104116,20902}"/>
+                </do_if>
+              </do_if>
+            </do_if>
+            <do_else>
+              <set_value name="$ticker_contents" exact="{102104116,2000} + '\n' + {102104116,2030}"/>
+              <set_value name="$ticker_contents" operation="add" exact="'\n' + {102104116,20902}"/>
+              <set_value name="$logbook_contents" exact="{102104116,2060} + '\n' + {102104116,2010} + '\n' + {102104116,2030} + '\n' + {102104116,2050} + $workforce_tax_total.formatted.{'%s%Cr'}"/> 
+            </do_else>
+            <do_if value="$faction_new_relation? or $workforce_changed?">
+              <do_if value="$workforce_pre lt $workforce_post">
+                <set_value name="$logbook_contents" operation="add" exact="'\n\n' + {102104116,2070} + '\n' + {102104116,2090}.[$workforce_post - $workforce_pre ]"/>
+              </do_if>
+              <do_if value="$workforce_pre gt $workforce_post">
+                <set_value name="$logbook_contents" operation="add" exact="'\n\n' + {102104116,2070} + '\n' + {102104116,20901}.[$workforce_pre - $workforce_post]"/>
+              </do_if>
+            </do_if>
+            <do_if value="$faction_new_relation?">
+              <set_value name="$logbook_contents" operation="add" exact="'\n\n' + {102104116,2080}"/>
+              <do_all exact="$reputation_changes.count" counter="$i">
+                <set_value name="$logbook_contents" operation="add" exact="'\n' + $reputation_changes.{$i}"/>
+              </do_all>
+            </do_if>
+            <do_if value="($total_outgoing + $total_incoming) != 0">
+              <show_notification text="$ticker_contents" timeout="10s"/>
+              <do_if value="$total_calculated != 0">
+                <write_to_logbook title="{102104116,2000}" category="upkeep" text="$logbook_contents" money="$total_calculated"/>"/>
+              </do_if>
+              <do_if value="not $is_bankrupt?">
+                <do_if value="$total_calculated != 0">
+                  <reward_player money="$total_calculated"/>
+                </do_if>
+              </do_if>
+            </do_if>
+            <!--Clean up-->
+            <remove_value name="$npc_tax_total"/>
+            <remove_value name="$reputation_changes"/>
+            <remove_value name="$sectors_player"/>
+            <remove_value name="$sector"/>
+            <remove_value name="$stations"/>
+            <remove_value name="$stations_total"/>
+            <remove_value name="$station"/>
+            <remove_value name="$relations"/>
+            <remove_value name="$npc_tax_rate"/>
+            <remove_value name="$npc_station_value"/>
+            <remove_value name="$npc_tax"/>
+            <remove_value name="$npc_tax_total"/>
+            <remove_value name="$npc_list_stations"/>
+            <remove_value name="$faction_owner"/>
+            <remove_value name="$reputation_change"/>
+            <remove_value name="$workforce_tax_total"/>
+            <remove_value name="$stations_player"/>
+            <remove_value name="$workforce_list_stations"/>
+            <remove_value name="$workforce_tax_total"/>
+            <remove_value name="$workforce_pre"/>
+            <remove_value name="$workforce_race"/>
+            <remove_value name="$workforce_changes"/>
+            <remove_value name="$workforce_post"/>
+            <remove_value name="$workforce_changed"/>
+            <remove_value name="$player_tax_total"/>
+            <remove_value name="$player_list_stations"/>
+            <remove_value name="$stations_player"/>
+            <remove_value name="$station_components"/>
+            <remove_value name="$player_tax"/>
+            <remove_value name="$player_station_faction"/>
+            <remove_value name="$is_bankrupt"/>
+            <remove_value name="$total_incoming"/>
+            <remove_value name="$total_outgoing"/>
+            <remove_value name="$total_calculated"/>
+            <remove_value name="$ticker_contents"/>
+            <remove_value name="$faction_old_relation"/>
+            <remove_value name="$faction_new_relation"/>
+          </actions>
+        </cue>
+        <library name="fht_relations">
+          <actions>
+              <set_value name="$faction_old_relation" exact="$faction_owner.relationto.{faction.player}"/>
+              <set_value name="$faction_new_relation" exact="($faction_old_relation + (0.00064 * $reputation_change))"/>
+              <set_faction_relation faction="$faction_owner" otherfaction="faction.player" value="$faction_new_relation"/>
+              <set_value name="$faction_new_relation" exact="$faction_owner.relationto.{faction.player}"/>
+              <debug_text text="'mod: relation ' + $faction_owner + '  ' + $faction_old_relation + ' to ' + $faction_new_relation" chance="md.fh_taxes_config.fht_config.$debug_chance"/>
+              <do_if value="$reputation_change gt 0">
+                <append_to_list name="$reputation_changes" exact="{102104116,20903}.[$faction_owner]"/>
+              </do_if>
+              <do_else>
+                <append_to_list name="$reputation_changes" exact="{102104116,20904}.[$faction_owner]"/>
+              </do_else>
+          </actions>
+        </library>
+      </cues>
+    </cue>
+  </cues>
+</mdscript>

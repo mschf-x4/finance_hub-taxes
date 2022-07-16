@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<language>
+  <page id="102104116" voice="no">
+    <!--Titles (XOOO)-->
+    <t id="1000">Finance Hub: Taxes</t>
+    <t id="2000">Finance Hub: Taxes - Summary</t>
+    <t id="10000">Your recent subscription</t>
+
+    <!--Option Headings (0X00)-->
+    <t id="1100">Script Configuration</t>
+    <t id="1200">Tax Configuration</t>
+
+    <!--Option Text (00X0)-->
+    <t id="1010">Finance Hub - Taxes has been installed.</t>
+    <t id="1110">Run Interval:</t>
+    <t id="1120">Player pays taxes:</t>
+    <t id="1130">Player collects taxes:</t>
+    <t id="1140">Workforce pays taxes:</t>
+    <t id="1150">Reputation change on failure:</t>
+    <t id="1160">Workforce events:</t>
+    <t id="1210">Neutral tax percentage:</t>
+    <t id="1220">Friendly tax percentage:</t>
+    <t id="1230">Member tax percentage:</t>
+    <t id="1240">Allied tax percentage:</t>
+    <t id="1250">Enemy tax percentage:</t>
+    <t id="1260">Workforce tax amount:</t>
+    <t id="2010">Taxes collected: </t>
+    <t id="2020">Taxes paid: </t>
+    <t id="2030">Not enough money to pay taxes.</t>
+    <t id="2040">Reputation changes: yes</t>
+    <t id="2050">Workforce tax collected: </t>
+    <t id="2060">Tax Overview:</t>
+    <t id="2070">Workforce Overview:</t>
+    <t id="2080">Reputation Overview:</t>
+    <t id="2090">%s workforce members recruited due to low taxes.</t>
+    <t id="20901">%s workforce members quit due to high taxes.</t>
+    <t id="20902">Additional information available in log.</t>
+    <t id="20903">Gained reputation with %s</t>
+    <t id="20904">Lost reputation with %s.</t>
+
+    <!--Option Mouse Over (000X)-->
+    <t id="1111">How often Finance Hub - Taxes runs.</t>
+    <t id="1121">Toggles player paying taxes on stations built in NPC sectors.</t>
+    <t id="1131">Toggles player collecting taxes on NPC stations built in player sectors.</t>
+    <t id="1141">Toggles workforce paying taxes for living on your stations.</t>
+    <t id="1151">Toggles reputation on failed payments.</t>
+    <t id="1161">Toggles workforce changes on low/high taxes.</t>
+    <t id="1211">How much tax you pay/receive from neutral factions.</t>
+    <t id="1221">How much tax you pay/receive from friendly factions.</t>
+    <t id="1231">How much tax you pay/receive from membered factions.</t>
+    <t id="1241">How much tax you pay/receive from allied factions.</t>
+    <t id="1251">How much tax you pay/receive from enemy factions.</t>
+    <t id="1261">How many credits you will receive from each workforce member.</t>
+
+    <!--Messages-->
+    <t id="10001">Greetings Pilot,\n\nI am messaging you on behalf of the well-respected Teladi Trade Guild. I would personally like to thank you for subscribing to our new initiative, Finance Hub.\n\nTo capitalise on sector space and those living free on our stations, we've developed a module that will allow you to collect taxes from your workforce and other factions that own stations in sectors under your jurisdiction.\n\nThis initiative has already been incredibly successful, and the other factions are already implementing it into their networks; unfortunately, this means you will have to pay taxes for stations built in other factions' sectors. Please ensure your account has sufficient balance to pay these, as we would hate to see your reputation with these factions decline.\n\nOur research team have found that setting taxes low will encrouage new citizens to join your workforce. They also found setting them high sent members of your workforce looking for work elsewhere!\n\nI have taken the liberty of configuring the default values on the tax module to get you started.\n\nGood profits to you,\nmschf</t>
+  </page>
+</language>

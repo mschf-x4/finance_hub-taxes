@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mdscript name="fh_taxes_config"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+    <cue name="fht_config" namespace="this" version="1">
+      <conditions>
+        <check_any>
+          <event_game_loaded/>
+          <event_cue_signalled cue="md.Setup.GameStart"/>
+        </check_any>
+      </conditions>
+      <actions>
+        <!--Debug Chance-->
+        <set_value name="$debug_chance" exact="0"/>
+        <!--Run Interval-->
+        <do_if value="not $run_int?">
+          <set_value name="$run_int" exact="30"/>
+          <debug_text text="'mod: set value $run_int=' + $run_int" chance="$debug_chance"/>
+        </do_if>
+        <!--Player Tax-->
+        <do_if value="not $player_tax_enabled?">
+          <set_value name="$player_tax_enabled" exact="1"/>
+          <debug_text text="'mod: set value $player_tax_enabled=' + $player_tax_enabled" chance="$debug_chance"/>
+        </do_if>
+        <!--NPC Tax-->
+        <do_if value="not $npc_tax_enabled?">
+          <set_value name="$npc_tax_enabled" exact="1"/>
+          <debug_text text="'mod: set value $npc_tax_enabled=' + $npc_tax_enabled" chance="$debug_chance"/>
+        </do_if>
+        <!--Workforce Tax-->
+        <do_if value="not $workforce_tax_enabled?">
+          <set_value name="$workforce_tax_enabled" exact="1"/>
+          <debug_text text="'mod: set value $workforce_tax_enabled=' + $workforce_tax_enabled" chance="$debug_chance"/>
+        </do_if>
+        <!--Reputation Events-->
+        <do_if value="not $reputation_fail_enabled?">
+          <set_value name="$reputation_fail_enabled" exact="1"/>
+          <debug_text text="'mod: set value $reputation_fail_enabled=' + $reputation_fail_enabled" chance="$debug_chance"/>
+        </do_if>
+        <!--Workforce Events-->
+        <do_if value="not $workforce_events_enabled?">
+          <set_value name="$workforce_events_enabled" exact="1"/>
+          <debug_text text="'mod: set value $workforce_events_enabled=' + $workforce_events_enabled" chance="$debug_chance"/>
+        </do_if>
+        <!--Enemy Tax Percent-->
+        <do_if value="not $enemy_tax_percent?">
+          <set_value name="$enemy_tax_percent" exact="0"/>
+          <debug_text text="'mod: set value $enemy_tax_percent=' + $enemy_tax_percent" chance="$debug_chance"/>
+        </do_if>
+        <!--Neutral Tax-->
+        <do_if value="not $neutral_tax_percent?">
+          <set_value name="$neutral_tax_percent" exact="4"/>
+          <debug_text text="'mod: set value $neutral_tax_percent=' + $neutral_tax_percent" chance="$debug_chance"/>
+        </do_if>
+        <!--Friendly Tax-->
+        <do_if value="not $friendly_tax_percent?">
+          <set_value name="$friendly_tax_percent" exact="2"/>
+          <debug_text text="'mod: set value $friendly_tax_percent=' + $friendly_tax_percent" chance="$debug_chance"/>
+        </do_if>
+        <!--Member Tax-->
+        <do_if value="not $member_tax_percent?">
+          <set_value name="$member_tax_percent" exact="1"/>
+          <debug_text text="'mod: set value $member_tax_percent=' + $member_tax_percent" chance="$debug_chance"/>
+        </do_if>
+        <!--Allied Tax-->
+        <do_if value="not $allied_tax_percent?">
+          <set_value name="$allied_tax_percent" exact="0"/>
+          <debug_text text="'mod: set value $allied_tax_percent=' + $allied_tax_percent" chance="$debug_chance"/>
+        </do_if>
+        <!--Workforce Tax-->
+        <do_if value="not $workforce_tax_amount?">
+          <set_value name="$workforce_tax_amount" exact="27"/>
+          <debug_text text="'mod: set value $workforce_tax_amount=' + $workforce_tax_amount" chance="$debug_chance"/>
+        </do_if>
+        <!--Display Installed-->
+        <do_if value="not $displayed_installed?">
+          <show_notification text="{102104116,1010}"/>
+          <write_incoming_message title="{102104116,10000}" text="{102104116,10001}" source="'mschf'" highpriority="1"/>
+          <set_value name="$displayed_installed" exact="1"/>
+          <debug_text text="'mod: set value $displayed_installed=' + $displayed_installed" chance="$debug_chance"/>
+        </do_if>
+      </actions>
+    </cue>
+  </cues>
+</mdscript>
